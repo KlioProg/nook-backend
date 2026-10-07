@@ -1,0 +1,103 @@
+generator client {
+  provider            = "prisma-client"
+  output              = "../src/generated/prisma"
+  moduleFormat        = "esm"
+  importFileExtension = "js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum AmenityCode {
+  WIFI
+  OUTLET
+  AIRCON
+  RESTROOM
+  PARKING
+}
+
+enum PurposeCode {
+  STUDY
+  HANGOUT
+  GROUP_PROJECT
+  CHILL
+  DATE
+  MEETING
+  INTERVIEW
+  QUICK_BITE
+}
+
+model User {
+  id           String     @id @default(uuid()) @db.Uuid
+  email        String     @unique @db.VarChar(254)
+  passwordHash String     @db.VarChar(255)
+  name         String     @db.VarChar(100)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  favorites    Favorite[]
+}
+
+model Spot {
+  id          String        @id @default(uuid()) @db.Uuid
+  name        String        @db.VarChar(150)
+  description String        @db.VarChar(2000)
+  address     String        @db.VarChar(500)
+  latitude    Float
+  longitude   Float
+  minPrice    Decimal       @db.Decimal(10, 2)
+  maxPrice    Decimal       @db.Decimal(10, 2)
+  isActive    Boolean       @default(true)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  amenities   SpotAmenity[]
+  purposes    SpotPurpose[]
+  favorites   Favorite[]
+
+  @@index([isActive, minPrice])
+}
+
+model Amenity {
+  id    String        @id @default(uuid()) @db.Uuid
+  code  AmenityCode   @unique
+  spots SpotAmenity[]
+}
+
+model Purpose {
+  id    String        @id @default(uuid()) @db.Uuid
+  code  PurposeCode   @unique
+  spots SpotPurpose[]
+}
+
+model SpotAmenity {
+  spotId    String  @db.Uuid
+  amenityId String  @db.Uuid
+  spot      Spot    @relation(fields: [spotId], references: [id], onDelete: Cascade)
+  amenity   Amenity @relation(fields: [amenityId], references: [id], onDelete: Restrict)
+
+  @@id([spotId, amenityId])
+  @@index([amenityId])
+}
+
+model SpotPurpose {
+  spotId    String  @db.Uuid
+  purposeId String  @db.Uuid
+  spot      Spot    @relation(fields: [spotId], references: [id], onDelete: Cascade)
+  purpose   Purpose @relation(fields: [purposeId], references: [id], onDelete: Restrict)
+
+  @@id([spotId, purposeId])
+  @@index([purposeId])
+}
+
+model Favorite {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @db.Uuid
+  spotId    String   @db.Uuid
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  spot      Spot     @relation(fields: [spotId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, spotId])
+  @@index([userId, createdAt])
+  @@index([spotId])
+}

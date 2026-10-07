@@ -1,0 +1,37 @@
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: nook
+      POSTGRES_PASSWORD: nook_dev_password
+      POSTGRES_DB: nook
+    ports:
+      - '127.0.0.1:5432:5432'
+    volumes:
+      - nook_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U nook -d nook']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  api:
+    profiles: ['app']
+    build: .
+    env_file: .env
+    environment:
+      NODE_ENV: development
+      PORT: 3001
+      DATABASE_URL: postgresql://nook:nook_dev_password@db:5432/nook?sslmode=disable
+      DIRECT_URL: ''
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - '3001:3001'
+    init: true
+    restart: unless-stopped
+
+volumes:
+  nook_postgres_data:

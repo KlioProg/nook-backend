@@ -1,0 +1,7 @@
+node_modules
+dist
+.test-dist
+.seed-dist
+src/generated
+package-lock.json
+prisma/migrations

@@ -1,0 +1,14 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "outDir": "./.test-dist",
+    "incremental": false,
+    "declaration": false
+  },
+  "include": [
+    "src/**/*.ts",
+    "test/**/*.ts",
+    "prisma/sample-spots.ts",
+    "prisma/seed-data.ts"
+  ]
+}
